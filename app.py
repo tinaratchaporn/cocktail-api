@@ -25,22 +25,27 @@ def home():
 @app.route("/cocktails", methods=["GET"])
 def search_cocktails():
     ingredient = request.args.get("ingredient")
-    mood = requ@app.route("/cocktails", methods=["GET"])
-def search_cocktails():
-    ingredient = request.args.get("ingredient")
     mood = request.args.get("mood")
     alcohol = request.args.get("alcohol_level")
 
-    results = cocktails
-    if ingredient:
-        results = [c for c in results if any(ingredient.lower() in i["name"].lower() for i in c["ingredients"])]
-    if mood:
-        results = [c for c in results if mood.lower() in [t.lower() for t in c.get("tags", [])]]
-    if alcohol:
-        results = [c for c in results if alcohol.lower() in c.get("alcohol_level", "").lower()]
+    results = []
+    for c in cocktails:
+        try:
+            if ingredient:
+                if not any(ingredient.lower() in i.get("name", "").lower() for i in c.get("ingredients", [])):
+                    continue
+            if mood:
+                if mood.lower() not in [t.lower() for t in c.get("tags", [])]:
+                    continue
+            if alcohol:
+                if alcohol.lower() not in c.get("alcohol_level", "").lower():
+                    continue
+            results.append({"id": c["id"], "name": c["name"]})
+        except Exception as e:
+            # ข้ามเมนูที่ข้อมูลไม่ครบ
+            continue
 
-    # ✅ ส่งเฉพาะ id และ name กลับไป
-    return jsonify([{"id": c["id"], "name": c["name"]} for c in results[:5]])
+    return jsonify(results[:5])
 
 @app.route("/random", methods=["GET"])
 def random_cocktail():
