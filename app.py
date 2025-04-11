@@ -37,7 +37,7 @@ def search_cocktails():
         results = [c for c in results if alcohol.lower() in c.get("alcohol_level", "").lower()]
 
     # ✅ ล้าง image_url ก่อนส่ง
-    return jsonify([clean_cocktail_data(c) for c in results])
+    return jsonify([clean_cocktail_data(c) for c in results[:5]])
 
 @app.route("/random", methods=["GET"])
 def random_cocktail():
