@@ -25,6 +25,9 @@ def home():
 @app.route("/cocktails", methods=["GET"])
 def search_cocktails():
     ingredient = request.args.get("ingredient")
+    mood = requ@app.route("/cocktails", methods=["GET"])
+def search_cocktails():
+    ingredient = request.args.get("ingredient")
     mood = request.args.get("mood")
     alcohol = request.args.get("alcohol_level")
 
@@ -36,8 +39,8 @@ def search_cocktails():
     if alcohol:
         results = [c for c in results if alcohol.lower() in c.get("alcohol_level", "").lower()]
 
-    # ✅ ล้าง image_url ก่อนส่ง
-    return jsonify([clean_cocktail_data(c) for c in results[:5]])
+    # ✅ ส่งเฉพาะ id และ name กลับไป
+    return jsonify([{"id": c["id"], "name": c["name"]} for c in results[:5]])
 
 @app.route("/random", methods=["GET"])
 def random_cocktail():
