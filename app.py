@@ -1,4 +1,3 @@
-
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import json
@@ -10,6 +9,14 @@ CORS(app)
 # Load cocktail data from JSON
 with open("cocktails_combined.json", "r", encoding="utf-8") as f:
     cocktails = json.load(f)
+
+# ฟังก์ชันล้าง image_url
+def clean_cocktail_data(cocktail):
+    cleaned = cocktail.copy()
+    img = cleaned.get("image_url", "")
+    if not (img and img.startswith("http")):
+        cleaned["image_url"] = ""
+    return cleaned
 
 @app.route("/")
 def home():
@@ -29,17 +36,18 @@ def search_cocktails():
     if alcohol:
         results = [c for c in results if alcohol.lower() in c.get("alcohol_level", "").lower()]
 
-    return jsonify(results)
+    # ✅ ล้าง image_url ก่อนส่ง
+    return jsonify([clean_cocktail_data(c) for c in results])
 
 @app.route("/random", methods=["GET"])
 def random_cocktail():
-    return jsonify(random.choice(cocktails))
+    return jsonify(clean_cocktail_data(random.choice(cocktails)))
 
 @app.route("/cocktail/<id>", methods=["GET"])
 def get_cocktail(id):
     for c in cocktails:
         if str(c["id"]) == id:
-            return jsonify(c)
+            return jsonify(clean_cocktail_data(c))
     return jsonify({"error": "Cocktail not found"}), 404
 
 if __name__ == "__main__":
