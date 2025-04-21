@@ -11,21 +11,21 @@ CORS(app)
 with open("cocktails_combined.json", "r", encoding="utf-8") as f:
     cocktails = json.load(f)
 
-# ฟังก์ชันแปลข้อความเป็นภาษาไทย
+# แปลข้อความเป็นภาษาไทย
 def translate(text):
     try:
         return GoogleTranslator(source='en', target='th').translate(text)
     except:
         return text
 
-# แปลข้อมูลค็อกเทลทั้งเมนู
-def translate_cocktail(cocktail):
+# แปลเฉพาะ instructions และ ingredients (ไม่แปลชื่อเมนู)
+def translate_cocktail_partial(cocktail):
     return {
         "id": cocktail["id"],
-        "name": translate(cocktail["name"]),
-        "category": translate(cocktail.get("category", "")),
-        "alcohol_level": translate(cocktail.get("alcohol_level", "")),
-        "tags": [translate(t) for t in cocktail.get("tags", [])],
+        "name": cocktail["name"],  # ✅ คงชื่อเมนูภาษาอังกฤษไว้
+        "category": cocktail.get("category", ""),
+        "alcohol_level": cocktail.get("alcohol_level", ""),
+        "tags": cocktail.get("tags", []),
         "ingredients": [
             {
                 "name": translate(i["name"]),
@@ -37,7 +37,7 @@ def translate_cocktail(cocktail):
 
 @app.route("/")
 def home():
-    return jsonify({"message": "ยินดีต้อนรับสู่ Cocktail API (ภาษาไทย)"})
+    return jsonify({"message": "ยินดีต้อนรับสู่ Cocktail API"})
 
 @app.route("/cocktails", methods=["GET"])
 def search_cocktails():
@@ -53,22 +53,22 @@ def search_cocktails():
     if alcohol:
         results = [c for c in results if alcohol.lower() in c.get("alcohol_level", "").lower()]
 
-    # แปลแค่ชื่อ cocktail ที่โชว์เป็น list
+    # ✅ return ชื่อเมนูภาษาอังกฤษเท่านั้น
     return jsonify([
-        {"id": c["id"], "name": translate(c["name"])}
+        {"id": c["id"], "name": c["name"]}
         for c in results[:5]
     ])
 
 @app.route("/random", methods=["GET"])
 def random_cocktail():
     c = random.choice(cocktails)
-    return jsonify(translate_cocktail(c))
+    return jsonify(translate_cocktail_partial(c))
 
 @app.route("/cocktail/<id>", methods=["GET"])
 def get_cocktail(id):
     for c in cocktails:
         if str(c["id"]) == id:
-            return jsonify(translate_cocktail(c))
+            return jsonify(translate_cocktail_partial(c))
     return jsonify({"error": "ไม่พบเมนู"}), 404
 
 if __name__ == "__main__":
